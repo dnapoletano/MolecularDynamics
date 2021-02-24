@@ -1,29 +1,38 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 
+#include <functional>
 #include <random>
 
-#include "Atom.hpp"
+#include "Configuration.hpp"
 
+struct Observables {
+  double Pressure{0.0}, PressureError{0.0};
+};
 class Environment
 {
 private:
+  Observables Properties;
   std::mt19937_64 re;
   std::uniform_real_distribution<double> urng;
   /// we could use a normal generator for the initial velocities
   /// std::normal_distribution<double> nrng;
   double TargetTemperature, LCube;
-  Atoms Particles;
+  Configuration Particles;
+
 public:
   Environment(const size_t npart, const double Temperature, const double lcube);
   ~Environment();
   void InitAtoms();
+  void InitiPositions();
+  void InitVelocities();
   void BoostAndRescale(const double& TotalSquaredVelocity, const Vec3d& TotalVelocity);
-  double KineticEnergy() const;
-  double PotentialEnergy() const;
-  double TotalEnergy() const;
-  inline double Temperature() const {return 2. * KineticEnergy() / 3. / Particles.size();}
-  double TotalMomentum() const;
+  void Evolve(const size_t maxsteps, const double retrialfactor);
+  Configuration TrialStep(const double retrialfactor);
+  bool Accept(const Configuration& trialconfig);
+  inline Observables GetObservables() const {return Properties;}
+  inline double GetVolume() const {return Particles.Volume();}
+  inline double GetVOverN() const {return Particles.Volume()/Particles.size();}
 };
 
 #endif

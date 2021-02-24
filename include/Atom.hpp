@@ -3,8 +3,6 @@
 
 #include "Vec3d.hpp"
 
-typedef std::vector<class Atom> Atoms;
-
 class Atom
 {
 private:
@@ -36,7 +34,7 @@ public:
     if(res.y > 0.0) while (res.y >= lcube) res.y -= lcube;
     else while(res.y < 0.0) res.y += lcube;
     if(res.z > 0.0) while (res.z >= lcube) res.z -= lcube;
-    else while(res.z < 0.0) res.z += lcube; 
+    else while(res.z < 0.0) res.z += lcube;
     return res;
   }
   inline static double Distance(const Atom& a, const Atom& b, const double& lcube) {
@@ -46,13 +44,6 @@ public:
   {
     os << " Atom Position : " << a.GetPosition() << "\n";
     os << " Atom Velocity : " << a.GetVelocity() << "\n";
-    return os;
-  }
-  inline friend std::ostream &operator<<(std::ostream &os, const Atoms as)
-  {
-    for(const auto& a: as){
-      os << a << "\n";
-    }
     return os;
   }
 };
