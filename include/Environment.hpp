@@ -15,8 +15,6 @@ private:
   Observables Properties;
   std::mt19937_64 re;
   std::uniform_real_distribution<double> urng;
-  /// we could use a normal generator for the initial velocities
-  /// std::normal_distribution<double> nrng;
   double TargetTemperature, LCube;
   Configuration Particles;
 

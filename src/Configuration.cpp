@@ -60,11 +60,11 @@ void Configuration::CalcEnergy()
 
 double Configuration::PartitionFunction() const
 {
-  return exp(-TotEnergy/Temperature);
+  return exp(-PotEnergy/Temperature);
 }
 
 double Configuration::LogPartitionFunction() const
 {
-  return TotEnergy/Temperature;
+  return PotEnergy/Temperature;
 }
 

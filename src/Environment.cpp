@@ -1,5 +1,7 @@
 /// NOTE: measure if an algorith is better: sum acceptedtrials^2/ computing time
+#include <cstdlib>
 #include <fstream>
+
 #include "Environment.hpp"
 
 Environment::Environment(const size_t npart, const double Temperature, const double lcube)
@@ -10,6 +12,7 @@ Environment::Environment(const size_t npart, const double Temperature, const dou
   long int roundedpart {lround(pow(lround(pow(npart,1./3)),3))};
   Particles.resize(roundedpart);
   Particles.SetLCube(lcube);
+  std::cout << "Density : " << Particles.size()/Particles.Volume() << std::endl;
   InitAtoms();
 }
 
@@ -46,24 +49,45 @@ void Environment::Evolve(const size_t maxsteps, const double retrialfactor = 1.0
   size_t Accepted{0};
   for(size_t step{0}; step < maxsteps; ++step){
     Configuration TrialConfig{TrialStep(retrialfactor)};
+    // std::cout << "#################### Step " << step << " #########################\n";
+    // std::cout << "Trial : " << std::endl;
+    // std::cout << "Energy : " << TrialConfig.GetTotalEnergy()
+    //           << " K : " << TrialConfig.GetKineticEnergy()
+    //           << " U : " << TrialConfig.GetPotentialEnergy()
+    //           << " P : " << TrialConfig.GetPressure() << "\n";
+
+    // std::cout << "Old : " << std::endl;
+    // std::cout << "Energy : " << Particles.GetTotalEnergy()
+    //           << " K : " << Particles.GetKineticEnergy()
+    //           << " U : " << Particles.GetPotentialEnergy()
+    //           << " P : " << Particles.GetPressure() << "\n";
     if(Accept(TrialConfig)) {
+      // std::cout << " Accepted ! " << std::endl;
       /// I don't need trial config anymore!
       Particles = std::move(TrialConfig);
-      Properties.Pressure += Particles.GetPressure();
-      AvgOfSquares += Particles.GetPressure() * Particles.GetPressure();
       ++Accepted;
-      if(step % 100 == 0){
-        std::cout << "  step : " << step << " Pressure : "
-                  << Properties.Pressure/Accepted << std::flush << "\r";
-      }
-    } else continue;
+      // std::cout << "New : " << std::endl;
+      // std::cout << "Energy : " << Particles.GetTotalEnergy()
+      //           << " K : " << Particles.GetKineticEnergy()
+      //           << " U : " << Particles.GetPotentialEnergy()
+      //           << " P : " << Particles.GetPressure() << "\n";
+    }
+    Properties.Pressure += Particles.GetPressure();
+    AvgOfSquares += (Particles.GetPressure() * Particles.GetPressure());
+    if(step % 100 == 0){
+      std::cout << "  step : " << step << " Pressure : "
+                << Properties.Pressure/step << std::flush << "\r";
+    }
   }
-  Properties.Pressure /= Accepted;
-  Properties.PressureError = sqrt((AvgOfSquares/Particles.size() -
-    (Properties.Pressure * Properties.Pressure)) / Particles.size());
+
+  Properties.Pressure /= maxsteps;
+  Properties.PressureError = sqrt((AvgOfSquares/maxsteps -
+    (Properties.Pressure * Properties.Pressure)) / maxsteps);
+
   std::cout << "Accepted trials : " << Accepted << ", Pressure: " << Properties.Pressure
             << " +/- " << Properties.PressureError
             <<  ", V/N : " << Particles.Volume() / Particles.size() << "\n";
+
   double percentage_error {100.0 * Properties.PressureError / Properties.Pressure};
   // if(percentage_error > 1.0) {
   //   std::cout << "Re- performing evolution with delta = " << Constants::Delta * retrialfactor / 10.0 << "\n";
@@ -84,7 +108,10 @@ Configuration Environment::TrialStep(const double retrialfactor = 1.0)
 {
   Configuration new_config{Particles};
   /// select a random particle
-  Configuration::iterator selected = (new_config.begin() + lround( urng(re) * new_config.size()));
+  Configuration::iterator selected {
+    (new_config.begin() + static_cast<int>(urng(re) * new_config.size()))
+  };
+
 
   selected->IncrementPosition(Vec3d{
                                     retrialfactor * Constants::Delta * (urng(re) - 0.5),
@@ -97,19 +124,9 @@ Configuration Environment::TrialStep(const double retrialfactor = 1.0)
 
 bool Environment::Accept(const Configuration& trialconfig)
 {
-  double ratioNO{
-    (Particles.PartitionFunction() == 0.0) ?
-      Particles.LogPartitionFunction()/trialconfig.LogPartitionFunction():
-      trialconfig.PartitionFunction()/Particles.PartitionFunction()};
-  if( ratioNO >= 1.0){
-    return true;
-  } else{
-    if(urng(re) < ratioNO){
-      return true;
-    } else{
-      return false;
-    }
-  }
+  if(trialconfig.GetPotentialEnergy() < Particles.GetPotentialEnergy()) return true;
+  const double ratioNO{exp(Particles.LogPartitionFunction() - trialconfig.LogPartitionFunction())};
+  return (urng(re) <= ratioNO);
 }
 
 void Environment::InitiPositions()
@@ -150,21 +167,26 @@ void Environment::InitVelocities()
   BoostAndRescale(TotalSquaredVelocity, TotalVelocity/Particles.size());
 }
 
-int main(){
+int main(int argc, char* argv[]){
+  double refactor {(argc > 1) ? std::atof(argv[1]) : 1.0};
+  std::cout << " Actual Delta : " << refactor * Constants::Delta << std::endl;
   std::ofstream outfile;
   std::cout << std::left;
   outfile << "VOverN" << "," << "Pressure" << "," << "PressureError" <<"\n";
   std::vector<double> Temperatures {4.,4.*0.8,4.*pow(0.8,2),
     4.*pow(0.8,3),4.*pow(0.8,4),4.*pow(0.8,5)};
   std::vector<double> VOverN {logspace<double>(log10(0.5),log10(80),23,10.0)};
+  //std::vector<double> VOverN {1.58455};
   for(const auto& t: Temperatures){
     outfile.open("results" + std::to_string(t) + ".txt",std::ios::out);
     outfile << std::left;
     /// Keep the number of particles fixed and only change the volume
     for(const auto& vn: VOverN){
+      std::cout << " vn " << vn << std::endl;
       auto lcube {pow(vn * 400, 1./3.)};
+      std::cout << " LCube : " << lcube << std::endl;
       Environment env(400, t, lcube);
-      env.Evolve(1000);
+      env.Evolve(1000, refactor);
       outfile << std::scientific << env.GetVOverN() << "," << env.GetObservables().Pressure
               << "," << env.GetObservables().PressureError << "\n";
     }

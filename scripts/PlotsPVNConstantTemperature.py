@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('-d', '--result-directory', dest='Result_Directory', type=str)
+parser.add_argument('-o', '--output-filename', dest='OutFileName', type=str)
 args = parser.parse_args()
 
 plt.style.use('/Users/Nappo/work/local/mplstyles/root_style.mplstyle')
@@ -22,4 +23,4 @@ plt.xlabel(r'$V/N$')
 plt.yscale('log')
 plt.xscale('log')
 plt.legend()
-plt.show()
+plt.savefig(args.OutFileName + '.pdf')

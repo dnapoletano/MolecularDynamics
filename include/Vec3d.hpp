@@ -12,6 +12,7 @@ struct Vec3d
   double Mod()  const { return sqrt(x * x + y * y + z * z); }
   double Mod2() const { return x * x + y * y + z * z; }
   static double Distance(const Vec3d &a, const Vec3d &b, const double& lcube);
+  static Vec3d  VecDistance(const Vec3d &a, const Vec3d &b, const double& lcube);
   inline Vec3d& operator+=(const Vec3d &b)
   {
     x+=b.x;
@@ -65,7 +66,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vec3d &a)
   return out << "{ " << a.x << ", " << a.y << ", " << a.z << "}";
 }
 
-inline double Vec3d::Distance(const Vec3d &a, const Vec3d &b, const double& lcube)
+inline Vec3d Vec3d::VecDistance(const Vec3d &a, const Vec3d &b, const double& lcube)
 {
   Vec3d diff{a-b};
   while (diff.x > lcube / 2.)
@@ -80,7 +81,12 @@ inline double Vec3d::Distance(const Vec3d &a, const Vec3d &b, const double& lcub
     diff.y += lcube;
   while (diff.z < -lcube / 2.)
     diff.z += lcube;
-  return diff.Mod();
+  return diff;
+}
+
+inline double Vec3d::Distance(const Vec3d &a, const Vec3d &b, const double& lcube)
+{
+  return VecDistance(a,b,lcube).Mod();
 }
 
 #endif
