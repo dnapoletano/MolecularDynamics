@@ -82,25 +82,20 @@ void Environment::Evolve(const size_t maxsteps, const double retrialfactor = 1.0
 
   Properties.Pressure /= maxsteps;
   Properties.PressureError = sqrt((AvgOfSquares/maxsteps -
-    (Properties.Pressure * Properties.Pressure)) / maxsteps);
+    (Properties.Pressure * Properties.Pressure)) / (maxsteps - 1));
 
   std::cout << "Accepted trials : " << Accepted << ", Pressure: " << Properties.Pressure
             << " +/- " << Properties.PressureError
             <<  ", V/N : " << Particles.Volume() / Particles.size() << "\n";
 
-  double percentage_error {100.0 * Properties.PressureError / Properties.Pressure};
-  // if(percentage_error > 1.0) {
-  //   std::cout << "Re- performing evolution with delta = " << Constants::Delta * retrialfactor / 10.0 << "\n";
-  //   Evolve(maxsteps, retrialfactor / 10.0);
-  // }
 }
 
 /*
   Copy the actual configuration in a new one.
   select a random particle of the new ensable and modify its position
   as
-  r' = r + Delta * (ran - 0.5)
-  with Delta=1.e-3 (see RelazioneDinamicaMolecolare.pdf)
+  r' = r + retrialfactor * Delta * (ran - 0.5)
+  with Delta=1.e-3
 
   At the moment, no modifications of the velocities.
 */
