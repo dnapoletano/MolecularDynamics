@@ -47,7 +47,8 @@ void Configuration::CalcEnergy()
       const double d{Atom::Distance((*it1), (*it2), LCube)};
       if(d < Constants::rCutoff and d != 0){
         PotEnergy += WanderVaals(d);
-        virial  += d * abs(WanderVaalsForce(d));
+        /// this should be really a scalar product
+        virial  += d * WanderVaalsForce(d);
       }
     }
   }
