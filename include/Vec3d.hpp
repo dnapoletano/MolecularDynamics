@@ -13,6 +13,7 @@ struct Vec3d
   double Mod2() const { return x * x + y * y + z * z; }
   static double Distance(const Vec3d &a, const Vec3d &b, const double& lcube);
   static Vec3d  VecDistance(const Vec3d &a, const Vec3d &b, const double& lcube);
+
   inline Vec3d& operator+=(const Vec3d &b)
   {
     x+=b.x;
@@ -20,6 +21,7 @@ struct Vec3d
     z+=b.z;
     return *this;
   }
+
   inline Vec3d &operator*=(const double &b)
   {
     x *= b;
@@ -27,6 +29,7 @@ struct Vec3d
     z *= b;
     return *this;
   }
+
   inline Vec3d &operator/=(const double &b)
   {
     x /= b;
@@ -54,6 +57,11 @@ inline Vec3d operator*(const Vec3d &a, const double &b)
 inline Vec3d operator*(const double &b, const Vec3d &a)
 {
   return Vec3d{a.x * b, a.y * b, a.z * b};
+}
+
+inline double operator*(const Vec3d &a, const Vec3d &b)
+{
+  return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 inline Vec3d operator/(const Vec3d &a, const double &b)

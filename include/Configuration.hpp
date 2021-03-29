@@ -88,6 +88,10 @@ public:
   double PartitionFunction() const;
   double LogPartitionFunction() const;
 
+  /// static member functions to compute the Wan der Vaals interaction
+  static double WanderVaals(const double d);
+  static Vec3d WanderVaalsForce(const Vec3d& d);
+
   /// utilities
   inline const Vec3d& GetTotalMomentum()   const {return TotMomentum;}
   inline double GetKineticEnergy()         const {return KinEnergy;}

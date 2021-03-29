@@ -1,0 +1,9 @@
+NParticles: 400
+Seed: 0
+Iterations: 100
+Temperature: 4.0
+VNLimits:
+  - 2.5
+  - 80.0
+VNSamples: 23
+OutFileName: "testfile"

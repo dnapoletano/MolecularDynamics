@@ -44,11 +44,11 @@ void Configuration::CalcEnergy()
     TotMomentum += Constants::mass * it1->GetVelocity();
     TotalSquaredVelocity += it1->GetVelocity().Mod2();
     for(Atoms::iterator it2{it1+1}; it2!=this->end();++it2){
-      const double d{Atom::Distance((*it1), (*it2), LCube)};
-      if(d < Constants::rCutoff and d != 0){
-        PotEnergy += WanderVaals(d);
-        /// this should be really a scalar product
-        virial  += d * WanderVaalsForce(d);
+      const Vec3d d {Vec3d::Distance(it1->GetPosition(), it2->GetPosition(), LCube)};
+      const double r{d.Mod()};
+      if(r < Constants::rCutoff and r != 0){
+        PotEnergy += WanderVaals(r);
+        virial    += d * WanderVaalsForce(d);
       }
     }
   }
@@ -67,5 +67,20 @@ double Configuration::PartitionFunction() const
 double Configuration::LogPartitionFunction() const
 {
   return PotEnergy/Temperature;
+}
+
+
+double Configuration::WanderVaals(const double d){
+  if(d==0.0) return 0.0;
+  return 4. * Constants::epsilon *
+           (pow(Constants::sigma / d, 12) - pow(Constants::sigma / d, 6) - Constants::eta);
+}
+
+Vec3d Configuration::WanderVaalsForce(const Vec3d& d){
+  double r {d.Mod()};
+  /// f = - U', such that F = - grad U = - rvec * U' / r;
+  double f{  - 4. * Constants::epsilon *
+           (- 12 * pow(Constants::sigma / r, 12) + 6 * pow(Constants::sigma / r, 6)) / r };
+  return Vec3d{d.x * f / r, d.y * f /r, d.z * f /r};
 }
 

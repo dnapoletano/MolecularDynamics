@@ -18,6 +18,7 @@ for f in sorted(os.listdir(args.Result_Directory)):
     print(data[2])
     plt.errorbar(data[0],data[1],yerr=data[2],
       marker='o',label=r'$T={0:.1f}$'.format(temp), markersize=3)
+
 plt.ylabel(r'$P$')
 plt.xlabel(r'$V/N$')
 plt.yscale('log')
