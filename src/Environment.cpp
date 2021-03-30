@@ -218,16 +218,19 @@ int main(int argc, char* argv[]){
   if(argc > 1){
     save_args({argv[1]},args);
   }
-  std::ofstream outfile;
-  std::vector<double> Temperatures {args.Temperature,4.*0.8,
-                                    args.Temperature*pow(0.8,2),
-                                    args.Temperature*pow(0.8,3),
-                                    args.Temperature*pow(0.8,4),
-                                    args.Temperature*pow(0.8,5)
-                                   };
+  // std::vector<double> Temperatures {args.Temperature,
+  //                                   args.Temperature*0.8,
+  //                                   args.Temperature*pow(0.8,2),
+  //                                   args.Temperature*pow(0.8,3),
+  //                                   args.Temperature*pow(0.8,4),
+  //                                   args.Temperature*pow(0.8,5)
+  //                                  };
+  std::vector<double> Temperatures {args.Temperature};
   std::vector<double> VOverN {(utils::logspace<double>(log10(args.VOverNLimits.first),
-                               log10(args.VOverNLimits.first),args.VNSamples,10.0))};
+                               log10(args.VOverNLimits.second),args.VNSamples,10.0))};
+
   for(const auto& t: Temperatures){
+    std::ofstream outfile;
     outfile.open(args.OutFileName + std::to_string(t) + ".txt",std::ios::out);
     outfile << std::left;
     outfile << "VOverN" << "," << "Pressure" << "," << "PressureError" <<"\n";
